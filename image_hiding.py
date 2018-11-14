@@ -34,17 +34,29 @@ def decode(hidden_name, output_name):
                 
     cv2.imwrite(output_name, extracted, [int(cv2.IMWRITE_PNG_COMPRESSION), 0])
 
+def decode_anim(hidden_name, output_name):
+    hidden = cv2.imread(hidden_name)
+    extracted = np.ndarray(hidden.shape, dtype=int)
+    for i in range(0, (8-n)):
+        for x in range(hidden.shape[0]):
+            for y in range(hidden.shape[1]):
+                for c in range(hidden.shape[2]):
+                    extracted[x][y][c] = (hidden[x][y][c] << BIT_SHIFT[7-i]) & 255
+                
+        cv2.imwrite(str(i) + "_" + output_name, extracted, [int(cv2.IMWRITE_PNG_COMPRESSION), 0])
+
 if __name__ == "__main__":
     argv = sys.argv[1:]
     carrier_name = ""
     secret_name = ""
     hidden_name = ""
     output_name = "output.png"
+    anim = False
 
     try:
         if len(argv) == 0:
             raise ValueError("Not enough arguments")
-        opts, args = getopt.getopt(argv,"c:s:d:n:o:",["carrier=", "secret=", "decode=", "n=", "output="])
+        opts, args = getopt.getopt(argv,"c:s:d:n:o:a",["carrier=", "secret=", "decode=", "n=", "output=", "anim"])
     except Exception:
         print("To encode:\n python3 image_hiding.py -c carrier.png -s secret.png -o output.png -n bits\n")
         print("To decode:\n python3 image_hiding.py -d hidden.png -o output.png -n bits \n")
@@ -61,10 +73,16 @@ if __name__ == "__main__":
             if n < 1 or n > 7:
                 raise ValueError("Wrong n value!")
         if opt in ('-o', '--output'):
+            if arg.split('.')[-1] != 'png':
+                raise ValueError("Output has to by png!")
             output_name = arg
+        if opt in ('-a', '--anim'):
+            anim = True
     
     if not carrier_name == "" and not secret_name == "":
         encode(carrier_name, secret_name, output_name)
+    elif not hidden_name =="" and anim:
+        decode_anim(hidden_name, output_name)
     elif not hidden_name =="":
         decode(hidden_name, output_name)
 
